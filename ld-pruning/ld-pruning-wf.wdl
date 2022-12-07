@@ -2,7 +2,7 @@ version 1.0
 
 # THIS IS A TEMPORARY COMMIT TO TEST SOMETHING ON TERRA
 
-import "https://raw.githubusercontent.com/aofarrel/Stuart-WDL/segment_scatter/segment_scatter.wdl"
+import "https://raw.githubusercontent.com/aofarrel/Stuart-WDL/segment_scatter/segfault.wdl"
 
 workflow Segment_Scatter {
 	input {
