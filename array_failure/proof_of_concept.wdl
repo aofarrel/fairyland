@@ -53,25 +53,27 @@ workflow ArrayConstructionFailure {
 	# Array[File?] generate_either_alpha_or_omega.omega --> failed first task, should be investigated
 	# Array[File?] generate_either_beta_or_gamma.beta   --> successfully passed second task (in the real pipeline this is a final output)
 	# Array[File?] generate_either_beta_or_gamma.gamma  --> failed second task, should be investigated
-
-	Array[File] 
     
     if(run_check_omega_andor_gamma) {
 
-    	# this if statement fails (unless never_omega_nor_gamma = true)
+        # if you move this block under the next if statement, this workflow will pass miniwdl and womtool
+        # however, two out of the three if statements will cause issues at runtime (unless never_omega_nor_gamma = true) 
+        Array[File] coerced_omega_array_ = select_all(generate_either_alpha_or_omega.omega)
+        Array[File] coerced_gamma_array_ = select_all(generate_either_beta_or_gamma.gamma)
+        Array[Array[File]] coerced_nested_array = [coerced_omega_array_, coerced_gamma_array_] 
+
 		if(length(generate_either_alpha_or_omega.omega)>1 && length(generate_either_beta_or_gamma.gamma)>1) {
-			Array[File] coerced_omega_array_ = select_all(generate_either_alpha_or_omega.omega)
-			Array[File] coerced_gamma_array_ = select_all(generate_either_beta_or_gamma.gamma)
-			Array[Array[File]] coerced_nested_array = [coerced_omega_array_, coerced_gamma_array_]
-			Array[File] coerced_omega_and_gamma_array = flatten(coerced_nested_array)  
+            #Array[File] coerced_omega_array_ = select_all(generate_either_alpha_or_omega.omega)
+            #Array[File] coerced_gamma_array_ = select_all(generate_either_beta_or_gamma.gamma)
+            #Array[Array[File]] coerced_nested_array = [coerced_omega_array_, coerced_gamma_array_] 
+		    Array[File] coerced_omega_and_gamma_array = flatten(coerced_nested_array) 
 		}
 
-		# this if statement seems to be fine 
+		# this if statement seems to be fine even if we move those three Array[File] definitions
 		if(length(generate_either_alpha_or_omega.omega)>1) {
 			Array[File] coerced_omega_array = select_all(generate_either_alpha_or_omega.omega)
 		}
 
-		# this if statement fails (unless never_omega_nor_gamma = true)
 		if(length(generate_either_beta_or_gamma.gamma)>1) {
 			Array[File] coerced_gamma_array = select_all(generate_either_beta_or_gamma.gamma)
 		}
@@ -110,6 +112,9 @@ task generate_either_alpha_or_omega {
 		docker: "ashedpotatoes/sranwrp:1.1.7"
 		preemptible: 1
 	}
+    meta {
+        volatile: true
+    }
 	output {
 		File? alpha = "alpha"
 		File? omega = "omega"
@@ -143,6 +148,9 @@ task generate_either_beta_or_gamma {
 		docker: "ashedpotatoes/sranwrp:1.1.7"
 		preemptible: 1
 	}
+    meta {
+        volatile: true
+    }
 	output {
 		File? beta = "beta"
 		File? gamma = "gamma"
